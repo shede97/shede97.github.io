@@ -1,1 +1,219 @@
-Hello World
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2575.6">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times; -webkit-text-stroke: #000000}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times; -webkit-text-stroke: #000000; min-height: 14.0px}
+    span.s1 {font-kerning: none}
+  </style>
+</head>
+<body>
+<p class="p1"><span class="s1">&lt;!DOCTYPE html&gt;</span></p>
+<p class="p1"><span class="s1">&lt;html lang="en"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;head&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;title&gt;World Happiness 2024 Narrative Visualization&lt;/title&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;script src="https://d3js.org/d3.v7.min.js"&gt;&lt;/script&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;script src="https://unpkg.com/d3-annotation@2"&gt;&lt;/script&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;style&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>body { font-family: Arial, sans-serif; text-align: center; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.container { margin: 20px auto; max-width: 800px; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.controls { margin-bottom: 20px; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.button { padding: 10px 20px; margin: 5px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 5px; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.button:hover { background-color: #0056b3; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.tooltip { position: absolute; background-color: white; border: 1px solid black; padding: 5px; pointer-events: none; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.annotation-note-title { font-weight: bold; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.annotation-note-label { font-size: 12px; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/head&gt;</span></p>
+<p class="p1"><span class="s1">&lt;body&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="container"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;h1&gt;Exploring 2024 World Happiness Factors&lt;/h1&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="controls"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;button class="button" onclick="updateScene(1)"&gt;Scene 1: Social Support&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;button class="button" onclick="updateScene(2)"&gt;Scene 2: Life Expectancy&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;button class="button" onclick="updateScene(3)"&gt;Scene 3: Freedom&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;svg id="visualization" width="800" height="500"&gt;&lt;/svg&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;script&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// Parameters</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let currentScene = 1;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const scenes = {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>1: {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>x: "Social support",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>y: "Ladder score",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>title: "Happiness vs Social Support",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>annotations: [</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>{ note: { title: "High Social Support", label: "Finland: Strong community ties boost happiness" }, x: 1.572, y: 7.741, dy: -30, dx: 50, country: "Finland" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>{ note: { title: "Low Social Support", label: "Afghanistan: Weak support lowers happiness" }, x: 0.000, y: 1.721, dy: 30, dx: -50, country: "Afghanistan" }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>},</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>2: {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>x: "Healthy life expectancy",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>y: "Ladder score",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>title: "Happiness vs Healthy Life Expectancy",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>annotations: [</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>{ note: { title: "High Life Expectancy", label: "Hong Kong: Long, healthy lives correlate with happiness" }, x: 0.857, y: 5.316, dy: -30, dx: 50, country: "Hong Kong S.A.R. of China" }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>},</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>3: {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>x: "Freedom to make life choices",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>y: "Ladder score",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>title: "Happiness vs Freedom",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>annotations: [],</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>interactive: true</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>};</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// SVG setup</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const svg = d3.select("#visualization");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const margin = { top: 50, right: 50, bottom: 70, left: 70 };</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const width = svg.attr("width") - margin.left - margin.right;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const height = svg.attr("height") - margin.top - margin.bottom;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// Scales</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const xScale = d3.scaleLinear().range([0, width]);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const yScale = d3.scaleLinear().range([height, 0]);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const colorScale = d3.scaleOrdinal(d3.schemeCategory10);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// Axes</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const xAxis = g.append("g").attr("transform", `translate(0,${height})`);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const yAxis = g.append("g");</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// Tooltip</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const tooltip = d3.select("body").append("div").attr("class", "tooltip").style("opacity", 0);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// Load data and initialize</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>d3.csv("world-happiness-report-2024.csv").then(data =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// Convert strings to numbers and filter out invalid rows</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>data = data.filter(d =&gt;<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>d["Ladder score"] &amp;&amp;<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>d["Social support"] &amp;&amp;<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>d["Healthy life expectancy"] &amp;&amp;<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>d["Freedom to make life choices"] &amp;&amp;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>!isNaN(+d["Ladder score"]) &amp;&amp;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>!isNaN(+d["Social support"]) &amp;&amp;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>!isNaN(+d["Healthy life expectancy"]) &amp;&amp;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>!isNaN(+d["Freedom to make life choices"])</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>).map(d =&gt; ({</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>"Country name": d["Country name"],</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>"Ladder score": +d["Ladder score"],</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>"Social support": +d["Social support"],</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>"Healthy life expectancy": +d["Healthy life expectancy"],</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>"Freedom to make life choices": +d["Freedom to make life choices"]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}));</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>console.log("Processed data:", data); // Debug: Log the processed data</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// Verify annotation countries exist</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const annotationCountries = ["Finland", "Afghanistan", "Hong Kong S.A.R. of China"];</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>annotationCountries.forEach(country =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>if (!data.find(d =&gt; d["Country name"] === country)) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>console.warn(`Country "${country}" not found in dataset`);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>});</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// Update scene function</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>function updateScene(sceneNumber) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>currentScene = sceneNumber;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const scene = scenes[sceneNumber];</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>// Clear previous content</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>g.selectAll(".dot, .annotation").remove();</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>// Update scales</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>xScale.domain(d3.extent(data, d =&gt; d[scene.x])).nice();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>yScale.domain(d3.extent(data, d =&gt; d[scene.y])).nice();</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>// Update axes</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>xAxis.transition().call(d3.axisBottom(xScale));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>yAxis.transition().call(d3.axisLeft(yScale));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>xAxis.append("text")</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.attr("x", width / 2)</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.attr("y", 40)</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.attr("fill", "black")</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.text(scene.x);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>yAxis.append("text")</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.attr("x", -height / 2)</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.attr("y", -40)</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.attr("transform", "rotate(-90)")</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.attr("fill", "black")</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.text(scene.y);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>// Title</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>svg.selectAll(".title").remove();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>svg.append("text")</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.attr("class", "title")</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.attr("x", width / 2 + margin.left)</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.attr("y", margin.top / 2)</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.attr("text-anchor", "middle")</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.text(scene.title);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>// Draw dots</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>g.selectAll(".dot")</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.data(data)</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.enter()</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.append("circle")</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.attr("class", "dot")</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.attr("cx", d =&gt; xScale(d[scene.x]))</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.attr("cy", d =&gt; yScale(d[scene.y]))</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.attr("r", 5)</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.attr("fill", (d, i) =&gt; colorScale(i % 10))</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.on("mouseover", function(event, d) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>if (scene.interactive) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>tooltip.transition().style("opacity", 0.9);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>tooltip.html(`Country: ${d["Country name"]}&lt;br&gt;Ladder score: ${d["Ladder score"]}&lt;br&gt;${scene.x}: ${d[scene.x]}`)</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>.style("left", (event.pageX + 5) + "px")</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>.style("top", (event.pageY - 28) + "px");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>})</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.on("mouseout", function() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>if (scene.interactive) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>tooltip.transition().style("opacity", 0);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>});</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>// Annotations</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const annotations = scene.annotations</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.map(ann =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>const countryData = data.find(d =&gt; d["Country name"] === ann.country);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>if (!countryData) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>console.warn(`Annotation for ${ann.country} skipped: country not found or missing data`);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>return null;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>return {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>...ann,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>x: countryData[scene.x],</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>y: countryData[scene.y]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>};</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>})</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.filter(ann =&gt; ann !== null);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const makeAnnotations = d3.annotation()</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.type(d3.annotationLabel)</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.accessors({</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>x: d =&gt; xScale(d.x),</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>y: d =&gt; yScale(d.y)</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>})</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.annotations(annotations);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>g.append("g")</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.attr("class", "annotation")</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>.call(makeAnnotations);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// Initial scene</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>updateScene(1);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}).catch(error =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>console.error("Error loading CSV:", error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/body&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/html&gt;</span></p>
+</body>
+</html>
