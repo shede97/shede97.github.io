@@ -54,8 +54,7 @@
         .regression-line { stroke: red; stroke-width: 2; }
         .annotation-note-label { font-size: 12px; }
         .annotation-group { display: block !important; }
-        .legend { font-size: 12px; }
-        .r2-target { cursor: pointer; }
+        .legend { font-size: 10px; }
     </style>
 </head>
 <body>
@@ -114,16 +113,15 @@
         const xAxis = g.append("g").attr("transform", "translate(0," + height + ")");
         const yAxis = g.append("g");
 
-        // Tooltips
+        // Tooltip
         const dotTooltip = d3.select("body").append("div").attr("class", "tooltip").style("opacity", 0);
-        const r2Tooltip = d3.select("body").append("div").attr("class", "tooltip").attr("id", "r2-tooltip").style("opacity", 0);
 
         // Update scene function (global scope)
         function updateScene(sceneNumber, data) {
             const scene = scenes[sceneNumber];
 
             // Clear previous content
-            g.selectAll(".dot, .regression-line, .annotation-group, .legend, .r2-target").remove();
+            g.selectAll(".dot, .regression-line, .annotation-group, .legend").remove();
 
             // Update scales
             xScale.domain(d3.extent(data, d => d[scene.x]) || [0, 1]).nice();
@@ -181,8 +179,6 @@
             const xMax = xScale.domain()[1];
             const yMin = regression.slope * xMin + regression.intercept;
             const yMax = regression.slope * xMax + regression.intercept;
-            const midX = xScale((xMin + xMax) / 2);
-            const midY = yScale((regression.slope * ((xMin + xMax) / 2) + regression.intercept));
 
             g.append("line")
                 .attr("class", "regression-line")
@@ -191,48 +187,19 @@
                 .attr("x2", xScale(xMax))
                 .attr("y2", yScale(yMax));
 
-            // Add R² target and tooltip with dotted line
+            // Add static R² annotation
             if (typeof d3.annotation !== 'undefined') {
-                const r2Target = g.append("circle")
-                    .attr("class", "r2-target")
-                    .attr("cx", 10)
-                    .attr("cy", 10)
-                    .attr("r", 5)
-                    .style("fill", "gray")
-                    .on("mouseover", function() {
-                        r2Tooltip.transition().style("opacity", 0.9);
-                        r2Tooltip.html(`R² = ${regression.r2.toFixed(3)}`)
-                            .style("left", (d3.event.pageX + 5) + "px")
-                            .style("top", (d3.event.pageY - 28) + "px");
-                    })
-                    .on("mouseout", function() {
-                        r2Tooltip.transition().style("opacity", 0);
-                    });
-
                 const r2Annotation = {
-                    note: { label: "", align: "middle", wrap: 0, padding: 0 },
+                    note: { label: `R² = ${regression.r2.toFixed(3)}`, align: "left", wrap: 80, padding: 5 },
                     x: 10,
                     y: 10,
-                    dx: midX - 10,
-                    dy: midY - 10,
-                    subject: { radius: 5 },
-                    connector: { end: "dot", type: "line", endScale: 5 },
-                    color: ["black"],
-                    disable: ["connector"],
-                    className: "hidden"
+                    dy: 0,
+                    dx: 0,
+                    color: ["black"]
                 };
                 const makeAnnotation = d3.annotation()
-                    .type(d3.annotationCallout)
-                    .annotations([r2Annotation])
-                    .accessors({ x: d => d.x, y: d => d.y })
-                    .on("subjectover", function(annotation) {
-                        annotation.connector.end = "arrow";
-                        d3.select(this).select("path").attr("stroke-dasharray", "5,5");
-                    })
-                    .on("subjectout", function(annotation) {
-                        annotation.connector.end = "dot";
-                        d3.select(this).select("path").attr("stroke-dasharray", "none");
-                    });
+                    .type(d3.annotationLabel)
+                    .annotations([r2Annotation]);
                 g.append("g")
                     .attr("class", "annotation-group")
                     .call(makeAnnotation);
@@ -245,7 +212,7 @@
                 .enter()
                 .append("g")
                 .attr("class", "legend")
-                .attr("transform", (d, i) => `translate(${width - 150}, ${i * 20 + 20})`);
+                .attr("transform", (d, i) => `translate(10, ${height - 20 - (regions.length * 15) + i * 15})`);
 
             legend.append("circle")
                 .attr("cx", 0)
