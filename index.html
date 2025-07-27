@@ -216,7 +216,7 @@
                 .enter()
                 .append("g")
                 .attr("class", "legend")
-                .attr("transform", (d, i) => `translate(10, 80 + i * 12)`);
+                .attr("transform", (d, i) => `translate(${width - 150}, ${height - 108 + i * 12})`);
 
             legend.append("circle")
                 .attr("cx", 0)
