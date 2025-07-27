@@ -50,11 +50,13 @@
         .button { padding: 10px 20px; margin: 5px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 5px; }
         .button:hover { background-color: #0056b3; }
         .tooltip { position: absolute; background-color: white; border: 1px solid black; padding: 5px; pointer-events: none; }
+        .regression-line { stroke: red; stroke-width: 2; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Exploring 2024 World Happiness Factors</h1>
+        <p id="data-context">Data from the 2024 World Happiness Report, a global survey recognized by governments and organizations, assesses happiness through expert analysis in economics, psychology, and public policy. The dataset includes 140 countries with metrics like Ladder score (0-10 happiness scale), Social support, Healthy life expectancy, and Freedom to make life choices. Linear regression analysis shows Social support (R² = [SS_R2]), Healthy life expectancy (R² = [HLE_R2]), and Freedom to make life choices (R² = [FMC_R2]) correlate with Ladder score, with [strongest_factor] showing the strongest correlation.</p>
         <div class="controls">
             <button class="button" onclick="updateScene(1, data)">Scene 1: Social Support</button>
             <button class="button" onclick="updateScene(2, data)">Scene 2: Life Expectancy</button>
@@ -63,24 +65,30 @@
         <svg id="visualization" width="900" height="500"></svg>
     </div>
     <script>
+        // Linear regression and R² calculation
+        function linearRegression(data, xKey, yKey) {
+            const n = data.length;
+            const xSum = d3.sum(data, d => d[xKey]);
+            const ySum = d3.sum(data, d => d[yKey]);
+            const xySum = d3.sum(data, d => d[xKey] * d[yKey]);
+            const x2Sum = d3.sum(data, d => d[xKey] * d[xKey]);
+
+            const slope = (n * xySum - xSum * ySum) / (n * x2Sum - xSum * xSum);
+            const intercept = (ySum - slope * xSum) / n;
+
+            const yMean = ySum / n;
+            const ssTot = d3.sum(data, d => Math.pow(d[yKey] - yMean, 2));
+            const ssRes = d3.sum(data, d => Math.pow(d[yKey] - (slope * d[xKey] + intercept), 2));
+            const r2 = 1 - (ssRes / ssTot);
+
+            return { slope, intercept, r2 };
+        }
+
         // Parameters
         const scenes = {
-            1: {
-                x: "Social support",
-                y: "Ladder score",
-                title: "Happiness vs Social Support"
-            },
-            2: {
-                x: "Healthy life expectancy",
-                y: "Ladder score",
-                title: "Happiness vs Healthy Life Expectancy"
-            },
-            3: {
-                x: "Freedom to make life choices",
-                y: "Ladder score",
-                title: "Happiness vs Freedom",
-                interactive: true
-            }
+            1: { x: "Social support", y: "Ladder score", title: "Happiness vs Social Support" },
+            2: { x: "Healthy life expectancy", y: "Ladder score", title: "Happiness vs Healthy Life Expectancy" },
+            3: { x: "Freedom to make life choices", y: "Ladder score", title: "Happiness vs Freedom", interactive: true }
         };
 
         // SVG setup
@@ -107,7 +115,7 @@
             const scene = scenes[sceneNumber];
 
             // Clear previous content
-            g.selectAll(".dot").remove();
+            g.selectAll(".dot, .regression-line").remove();
 
             // Update scales
             xScale.domain(d3.extent(data, d => d[scene.x]) || [0, 1]).nice();
@@ -158,6 +166,22 @@
                 .on("mouseout", function() {
                     tooltip.transition().style("opacity", 0);
                 });
+
+            // Draw regression line for Scenes 1 and 2
+            if (sceneNumber === 1 || sceneNumber === 2) {
+                const regression = linearRegression(data, scene.x, scene.y);
+                const xMin = xScale.domain()[0];
+                const xMax = xScale.domain()[1];
+                const yMin = regression.slope * xMin + regression.intercept;
+                const yMax = regression.slope * xMax + regression.intercept;
+
+                g.append("line")
+                    .attr("class", "regression-line")
+                    .attr("x1", xScale(xMin))
+                    .attr("y1", yScale(yMin))
+                    .attr("x2", xScale(xMax))
+                    .attr("y2", yScale(yMax));
+            }
         }
 
         // Load data and initialize
@@ -187,6 +211,23 @@
             }));
 
             console.log("Processed data:", data);
+
+            // Calculate R² values for all scenes
+            const ssRegression = linearRegression(data, "Social support", "Ladder score");
+            const hleRegression = linearRegression(data, "Healthy life expectancy", "Ladder score");
+            const fmcRegression = linearRegression(data, "Freedom to make life choices", "Ladder score");
+            const r2Values = {
+                ss: ssRegression.r2.toFixed(3),
+                hle: hleRegression.r2.toFixed(3),
+                fmc: fmcRegression.r2.toFixed(3)
+            };
+            const strongestFactor = Math.max(ssRegression.r2, hleRegression.r2, fmcRegression.r2) === ssRegression.r2 ? "Social support" :
+                                   Math.max(ssRegression.r2, hleRegression.r2, fmcRegression.r2) === hleRegression.r2 ? "Healthy life expectancy" :
+                                   "Freedom to make life choices";
+
+            // Update paragraph with R² values and conclusion
+            d3.select("#data-context")
+                .html(`Data from the 2024 World Happiness Report, a global survey recognized by governments and organizations, assesses happiness through expert analysis in economics, psychology, and public policy. The dataset includes 140 countries with metrics like Ladder score (0-10 happiness scale), Social support, Healthy life expectancy, and Freedom to make life choices. Linear regression analysis shows Social support (R² = ${r2Values.ss}), Healthy life expectancy (R² = ${r2Values.hle}), and Freedom to make life choices (R² = ${r2Values.fmc}) correlate with Ladder score, with ${strongestFactor} showing the strongest correlation.`);
 
             // Initial scene
             updateScene(1, data);
