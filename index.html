@@ -53,7 +53,7 @@
         .tooltip { position: absolute; background-color: white; border: 1px solid black; padding: 5px; pointer-events: none; }
         .annotation-note-title { font-weight: bold; }
         .annotation-note-label { font-size: 12px; }
-        .annotation-group { display: block !important; } /* Ensure annotations are visible */
+        .annotation-group { display: block !important; }
     </style>
 </head>
 <body>
@@ -79,8 +79,8 @@
                 y: "Ladder score",
                 title: "Happiness vs Social Support",
                 annotations: [
-                    { note: { title: "High Social Support", label: "Finland: Strong community ties boost happiness" }, dy: -50, dx: 50, country: "Finland" },
-                    { note: { title: "Low Social Support", label: "Afghanistan: Weak support lowers happiness" }, dy: 50, dx: -50, country: "Afghanistan" }
+                    { note: { title: "High Social Support", label: "Finland: Strong community ties boost happiness" }, dy: -20, dx: 20, country: "Finland" },
+                    { note: { title: "Low Social Support", label: "Afghanistan: Weak support lowers happiness" }, dy: 20, dx: -20, country: "Afghanistan" }
                 ]
             },
             2: {
@@ -88,7 +88,7 @@
                 y: "Ladder score",
                 title: "Happiness vs Healthy Life Expectancy",
                 annotations: [
-                    { note: { title: "High Life Expectancy", label: "Hong Kong: Long, healthy lives correlate with happiness" }, dy: -50, dx: 50, country: "Hong Kong S.A.R. of China" }
+                    { note: { title: "High Life Expectancy", label: "Hong Kong: Long, healthy lives correlate with happiness" }, dy: -20, dx: 20, country: "Hong Kong S.A.R. of China" }
                 ]
             },
             3: {
@@ -127,8 +127,8 @@
             g.selectAll(".dot, .annotation-group").remove();
 
             // Update scales
-            xScale.domain(d3.extent(data, d => d[scene.x]) || [0, 1]).nice(); // Fallback domain if empty
-            yScale.domain(d3.extent(data, d => d[scene.y]) || [0, 1]).nice(); // Fallback domain if empty
+            xScale.domain(d3.extent(data, d => d[scene.x]) || [0, 1]).nice();
+            yScale.domain(d3.extent(data, d => d[scene.y]) || [0, 1]).nice();
 
             // Update axes
             xAxis.transition().call(d3.axisBottom(xScale));
@@ -167,17 +167,13 @@
                 .attr("r", 5)
                 .attr("fill", (d, i) => colorScale(i % 10))
                 .on("mouseover", function(d) {
-                    if (scene.interactive) {
-                        tooltip.transition().style("opacity", 0.9);
-                        tooltip.html(`Country: ${d["Country name"]}<br>Ladder score: ${d["Ladder score"]}<br>${scene.x}: ${d[scene.x]}`)
-                            .style("left", (d3.event.pageX + 5) + "px")
-                            .style("top", (d3.event.pageY - 28) + "px");
-                    }
+                    tooltip.transition().style("opacity", 0.9);
+                    tooltip.html(`Country: ${d["Country name"]}<br>Ladder score: ${d["Ladder score"]}<br>${scene.x}: ${d[scene.x]}`)
+                        .style("left", (d3.event.pageX + 5) + "px")
+                        .style("top", (d3.event.pageY - 28) + "px");
                 })
                 .on("mouseout", function() {
-                    if (scene.interactive) {
-                        tooltip.transition().style("opacity", 0);
-                    }
+                    tooltip.transition().style("opacity", 0);
                 });
 
             // Annotations
@@ -189,13 +185,15 @@
                             console.warn(`Annotation for ${ann.country} skipped: country not found or missing data`);
                             return null;
                         }
-                        console.log(`Annotation for ${ann.country}: x=${countryData[scene.x]}, y=${countryData[scene.y]}`); // Debug log
+                        const xPos = countryData[scene.x];
+                        const yPos = countryData[scene.y];
+                        console.log(`Annotation for ${ann.country}: raw x=${xPos}, raw y=${yPos}, scaled x=${xScale(xPos)}, scaled y=${yScale(yPos)}`);
                         return {
                             note: ann.note,
                             dy: ann.dy,
                             dx: ann.dx,
-                            x: countryData[scene.x],
-                            y: countryData[scene.y]
+                            x: xPos,
+                            y: yPos
                         };
                     })
                     .filter(ann => ann !== null);
@@ -211,7 +209,7 @@
                     const annotationGroup = g.append("g")
                         .attr("class", "annotation-group")
                         .call(makeAnnotations);
-                    console.log("Annotation group created:", annotationGroup); // Debug log to check if group is appended
+                    console.log("Annotation group created:", annotationGroup.nodes().length, "nodes");
                 } else {
                     console.warn("No valid annotations to render");
                 }
@@ -246,7 +244,7 @@
                 "Freedom to make life choices": +d["Freedom to make life choices"]
             }));
 
-            console.log("Processed data:", data); // Debug: Log the processed data
+            console.log("Processed data:", data);
 
             // Verify annotation countries exist
             const annotationCountries = ["Finland", "Afghanistan", "Hong Kong S.A.R. of China"];
