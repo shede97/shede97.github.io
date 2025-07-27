@@ -161,7 +161,7 @@
             const scene = scenes[sceneNumber];
 
             // Clear previous content
-            g.selectAll(".dot, .regression-line, .annotation-group, .legend").remove();
+            g.selectAll(".dot, .regression-line, .annotation-group, .legend, .hint-text").remove();
 
             // Update scales
             xScale.domain(d3.extent(data, d => d[scene.x]) || [0, 1]).nice();
@@ -248,6 +248,15 @@
                     .attr("class", "annotation-group")
                     .call(makeAnnotation);
             }
+
+            // Add hint text below R² annotation
+            g.append("text")
+                .attr("x", 10)
+                .attr("y", 40)
+                .attr("class", "hint-text")
+                .style("font-weight", "bold")
+                .style("color", "red")
+                .text("mouse over each dot to get more detailed country information");
 
             // Add legend
             const regions = ["Western Europe", "North America and ANZ", "Middle East and North Africa", "Latin America and Caribbean", "Central and Eastern Europe", "East Asia", "Southeast Asia", "Commonwealth of Independent States", "South Asia", "Sub-Saharan Africa"];
