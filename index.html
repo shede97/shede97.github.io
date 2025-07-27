@@ -53,6 +53,7 @@
         .tooltip { position: absolute; background-color: white; border: 1px solid black; padding: 5px; pointer-events: none; }
         .annotation-note-title { font-weight: bold; }
         .annotation-note-label { font-size: 12px; }
+        .annotation-group { display: block !important; } /* Ensure annotations are visible */
     </style>
 </head>
 <body>
@@ -78,8 +79,8 @@
                 y: "Ladder score",
                 title: "Happiness vs Social Support",
                 annotations: [
-                    { note: { title: "High Social Support", label: "Finland: Strong community ties boost happiness" }, dy: -40, dx: 40, country: "Finland" },
-                    { note: { title: "Low Social Support", label: "Afghanistan: Weak support lowers happiness" }, dy: 40, dx: -40, country: "Afghanistan" }
+                    { note: { title: "High Social Support", label: "Finland: Strong community ties boost happiness" }, dy: -50, dx: 50, country: "Finland" },
+                    { note: { title: "Low Social Support", label: "Afghanistan: Weak support lowers happiness" }, dy: 50, dx: -50, country: "Afghanistan" }
                 ]
             },
             2: {
@@ -87,7 +88,7 @@
                 y: "Ladder score",
                 title: "Happiness vs Healthy Life Expectancy",
                 annotations: [
-                    { note: { title: "High Life Expectancy", label: "Hong Kong: Long, healthy lives correlate with happiness" }, dy: -40, dx: 40, country: "Hong Kong S.A.R. of China" }
+                    { note: { title: "High Life Expectancy", label: "Hong Kong: Long, healthy lives correlate with happiness" }, dy: -50, dx: 50, country: "Hong Kong S.A.R. of China" }
                 ]
             },
             3: {
@@ -123,22 +124,22 @@
             const scene = scenes[sceneNumber];
 
             // Clear previous content
-            g.selectAll(".dot, .annotation").remove();
+            g.selectAll(".dot, .annotation-group").remove();
 
             // Update scales
-            xScale.domain(d3.extent(data, d => d[scene.x])).nice();
-            yScale.domain(d3.extent(data, d => d[scene.y])).nice();
+            xScale.domain(d3.extent(data, d => d[scene.x]) || [0, 1]).nice(); // Fallback domain if empty
+            yScale.domain(d3.extent(data, d => d[scene.y]) || [0, 1]).nice(); // Fallback domain if empty
 
             // Update axes
             xAxis.transition().call(d3.axisBottom(xScale));
             yAxis.transition().call(d3.axisLeft(yScale));
-            xAxis.selectAll("text").remove(); // Clear previous axis labels
+            xAxis.selectAll("text").remove();
             xAxis.append("text")
                 .attr("x", width / 2)
                 .attr("y", 40)
                 .attr("fill", "black")
                 .text(scene.x);
-            yAxis.selectAll("text").remove(); // Clear previous axis labels
+            yAxis.selectAll("text").remove();
             yAxis.append("text")
                 .attr("x", -height / 2)
                 .attr("y", -40)
@@ -198,16 +199,22 @@
                         };
                     })
                     .filter(ann => ann !== null);
-                const makeAnnotations = d3.annotation()
-                    .type(d3.annotationLabel)
-                    .accessors({
-                        x: d => xScale(d.x),
-                        y: d => yScale(d.y)
-                    })
-                    .annotations(annotations);
-                g.append("g")
-                    .attr("class", "annotation")
-                    .call(makeAnnotations);
+
+                if (annotations.length > 0) {
+                    const makeAnnotations = d3.annotation()
+                        .type(d3.annotationLabel)
+                        .accessors({
+                            x: d => xScale(d.x),
+                            y: d => yScale(d.y)
+                        })
+                        .annotations(annotations);
+                    const annotationGroup = g.append("g")
+                        .attr("class", "annotation-group")
+                        .call(makeAnnotations);
+                    console.log("Annotation group created:", annotationGroup); // Debug log to check if group is appended
+                } else {
+                    console.warn("No valid annotations to render");
+                }
             } else {
                 console.warn("Annotations skipped: d3-annotation library not loaded");
             }
