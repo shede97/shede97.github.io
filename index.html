@@ -43,7 +43,6 @@
     <meta charset="UTF-8">
     <title>World Happiness 2024 Narrative Visualization</title>
     <script src="https://d3js.org/d3.v4.js"></script>
-    <script src="https://rawgit.com/susielu/d3-annotation/master/d3-annotation.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
         .container { margin: 20px auto; max-width: 800px; }
@@ -51,9 +50,6 @@
         .button { padding: 10px 20px; margin: 5px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 5px; }
         .button:hover { background-color: #0056b3; }
         .tooltip { position: absolute; background-color: white; border: 1px solid black; padding: 5px; pointer-events: none; }
-        .annotation-note-title { font-weight: bold; }
-        .annotation-note-label { font-size: 12px; }
-        .annotation-group { display: block !important; }
     </style>
 </head>
 <body>
@@ -67,35 +63,22 @@
         <svg id="visualization" width="900" height="500"></svg>
     </div>
     <script>
-        // Check if d3.annotation is available
-        if (typeof d3.annotation === 'undefined') {
-            console.error("d3-annotation library failed to load");
-        }
-
         // Parameters
         const scenes = {
             1: {
                 x: "Social support",
                 y: "Ladder score",
-                title: "Happiness vs Social Support",
-                annotations: [
-                    { note: { title: "High Social Support", label: "Finland: Strong community ties boost happiness" }, x: 550, y: 50, dy: 20, dx: 20 },
-                    { note: { title: "Low Social Support", label: "Afghanistan: Weak support lowers happiness" }, x: 50, y: 350, dy: 20, dx: -20 }
-                ]
+                title: "Happiness vs Social Support"
             },
             2: {
                 x: "Healthy life expectancy",
                 y: "Ladder score",
-                title: "Happiness vs Healthy Life Expectancy",
-                annotations: [
-                    { note: { title: "High Life Expectancy", label: "Hong Kong: Long, healthy lives correlate with happiness" }, x: 400, y: 200, dy: 20, dx: 20 }
-                ]
+                title: "Happiness vs Healthy Life Expectancy"
             },
             3: {
                 x: "Freedom to make life choices",
                 y: "Ladder score",
                 title: "Happiness vs Freedom",
-                annotations: [],
                 interactive: true
             }
         };
@@ -124,7 +107,7 @@
             const scene = scenes[sceneNumber];
 
             // Clear previous content
-            g.selectAll(".dot, .annotation-group").remove();
+            g.selectAll(".dot").remove();
 
             // Update scales
             xScale.domain(d3.extent(data, d => d[scene.x]) || [0, 1]).nice();
@@ -175,22 +158,6 @@
                 .on("mouseout", function() {
                     tooltip.transition().style("opacity", 0);
                 });
-
-            // Annotations
-            if (typeof d3.annotation !== 'undefined') {
-                const annotations = scene.annotations;
-                if (annotations.length > 0) {
-                    const makeAnnotations = d3.annotation()
-                        .type(d3.annotationLabel)
-                        .annotations(annotations);
-                    g.append("g")
-                        .attr("class", "annotation-group")
-                        .call(makeAnnotations);
-                    console.log("Annotation group created with", annotations.length, "annotations");
-                }
-            } else {
-                console.warn("Annotations skipped: d3-annotation library not loaded");
-            }
         }
 
         // Load data and initialize
@@ -220,14 +187,6 @@
             }));
 
             console.log("Processed data:", data);
-
-            // Verify annotation countries exist
-            const annotationCountries = ["Finland", "Afghanistan", "Hong Kong S.A.R. of China"];
-            annotationCountries.forEach(country => {
-                if (!data.find(d => d["Country name"] === country)) {
-                    console.warn(`Country "${country}" not found in dataset`);
-                }
-            });
 
             // Initial scene
             updateScene(1, data);
