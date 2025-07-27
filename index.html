@@ -54,6 +54,8 @@
         .regression-line { stroke: red; stroke-width: 2; }
         .annotation-note-label { font-size: 12px; }
         .annotation-group { display: block !important; }
+        .legend { font-size: 12px; }
+        .r2-target { cursor: pointer; }
     </style>
 </head>
 <body>
@@ -104,21 +106,24 @@
         // Scales
         const xScale = d3.scaleLinear().range([0, width]);
         const yScale = d3.scaleLinear().range([height, 0]);
-        const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+        const colorScale = d3.scaleOrdinal()
+            .domain(["Western Europe", "North America and ANZ", "Middle East and North Africa", "Latin America and Caribbean", "Central and Eastern Europe", "East Asia", "Southeast Asia", "Commonwealth of Independent States", "South Asia", "Sub-Saharan Africa"])
+            .range(d3.schemeCategory10);
 
         // Axes
         const xAxis = g.append("g").attr("transform", "translate(0," + height + ")");
         const yAxis = g.append("g");
 
-        // Tooltip
-        const tooltip = d3.select("body").append("div").attr("class", "tooltip").style("opacity", 0);
+        // Tooltips
+        const dotTooltip = d3.select("body").append("div").attr("class", "tooltip").style("opacity", 0);
+        const r2Tooltip = d3.select("body").append("div").attr("class", "tooltip").attr("id", "r2-tooltip").style("opacity", 0);
 
         // Update scene function (global scope)
         function updateScene(sceneNumber, data) {
             const scene = scenes[sceneNumber];
 
             // Clear previous content
-            g.selectAll(".dot, .regression-line, .annotation-group").remove();
+            g.selectAll(".dot, .regression-line, .annotation-group, .legend, .r2-target").remove();
 
             // Update scales
             xScale.domain(d3.extent(data, d => d[scene.x]) || [0, 1]).nice();
@@ -150,7 +155,7 @@
                 .attr("text-anchor", "middle")
                 .text(scene.title);
 
-            // Draw dots
+            // Draw dots with region-based coloring
             g.selectAll(".dot")
                 .data(data)
                 .enter()
@@ -159,15 +164,15 @@
                 .attr("cx", d => xScale(d[scene.x]))
                 .attr("cy", d => yScale(d[scene.y]))
                 .attr("r", 5)
-                .attr("fill", (d, i) => colorScale(i % 10))
+                .style("fill", d => colorScale(d["Regional indicator"]))
                 .on("mouseover", function(d) {
-                    tooltip.transition().style("opacity", 0.9);
-                    tooltip.html(`Country: ${d["Country name"]}<br>Ladder score: ${d["Ladder score"]}<br>${scene.x}: ${d[scene.x]}`)
+                    dotTooltip.transition().style("opacity", 0.9);
+                    dotTooltip.html(`Country: ${d["Country name"]}<br>Ladder score: ${d["Ladder score"]}<br>${scene.x}: ${d[scene.x]}<br>Region: ${d["Regional indicator"]}`)
                         .style("left", (d3.event.pageX + 5) + "px")
                         .style("top", (d3.event.pageY - 28) + "px");
                 })
                 .on("mouseout", function() {
-                    tooltip.transition().style("opacity", 0);
+                    dotTooltip.transition().style("opacity", 0);
                 });
 
             // Draw regression line for all scenes
@@ -176,6 +181,8 @@
             const xMax = xScale.domain()[1];
             const yMin = regression.slope * xMin + regression.intercept;
             const yMax = regression.slope * xMax + regression.intercept;
+            const midX = xScale((xMin + xMax) / 2);
+            const midY = yScale((regression.slope * ((xMin + xMax) / 2) + regression.intercept));
 
             g.append("line")
                 .attr("class", "regression-line")
@@ -184,23 +191,74 @@
                 .attr("x2", xScale(xMax))
                 .attr("y2", yScale(yMax));
 
-            // Add R² annotation
+            // Add R² target and tooltip with dotted line
             if (typeof d3.annotation !== 'undefined') {
+                const r2Target = g.append("circle")
+                    .attr("class", "r2-target")
+                    .attr("cx", 10)
+                    .attr("cy", 10)
+                    .attr("r", 5)
+                    .style("fill", "gray")
+                    .on("mouseover", function() {
+                        r2Tooltip.transition().style("opacity", 0.9);
+                        r2Tooltip.html(`R² = ${regression.r2.toFixed(3)}`)
+                            .style("left", (d3.event.pageX + 5) + "px")
+                            .style("top", (d3.event.pageY - 28) + "px");
+                    })
+                    .on("mouseout", function() {
+                        r2Tooltip.transition().style("opacity", 0);
+                    });
+
                 const r2Annotation = {
-                    note: { label: `R² = ${regression.r2.toFixed(3)}`, align: "right", wrap: 80, padding: 5 },
-                    x: width - 10,
+                    note: { label: "", align: "middle", wrap: 0, padding: 0 },
+                    x: 10,
                     y: 10,
-                    dy: 0,
-                    dx: 0,
-                    color: ["black"]
+                    dx: midX - 10,
+                    dy: midY - 10,
+                    subject: { radius: 5 },
+                    connector: { end: "dot", type: "line", endScale: 5 },
+                    color: ["black"],
+                    disable: ["connector"],
+                    className: "hidden"
                 };
                 const makeAnnotation = d3.annotation()
-                    .type(d3.annotationLabel)
-                    .annotations([r2Annotation]);
+                    .type(d3.annotationCallout)
+                    .annotations([r2Annotation])
+                    .accessors({ x: d => d.x, y: d => d.y })
+                    .on("subjectover", function(annotation) {
+                        annotation.connector.end = "arrow";
+                        d3.select(this).select("path").attr("stroke-dasharray", "5,5");
+                    })
+                    .on("subjectout", function(annotation) {
+                        annotation.connector.end = "dot";
+                        d3.select(this).select("path").attr("stroke-dasharray", "none");
+                    });
                 g.append("g")
                     .attr("class", "annotation-group")
                     .call(makeAnnotation);
             }
+
+            // Add legend
+            const regions = ["Western Europe", "North America and ANZ", "Middle East and North Africa", "Latin America and Caribbean", "Central and Eastern Europe", "East Asia", "Southeast Asia", "Commonwealth of Independent States", "South Asia", "Sub-Saharan Africa"];
+            const legend = g.selectAll(".legend")
+                .data(regions)
+                .enter()
+                .append("g")
+                .attr("class", "legend")
+                .attr("transform", (d, i) => `translate(${width - 150}, ${i * 20 + 20})`);
+
+            legend.append("circle")
+                .attr("cx", 0)
+                .attr("cy", 0)
+                .attr("r", 5)
+                .style("fill", d => colorScale(d));
+
+            legend.append("text")
+                .attr("x", 10)
+                .attr("y", 0)
+                .attr("dy", "0.35em")
+                .style("text-anchor", "start")
+                .text(d => d);
         }
 
         // Load data and initialize
@@ -223,6 +281,7 @@
                 !isNaN(+d["Freedom to make life choices"])
             ).map(d => ({
                 "Country name": d["Country name"],
+                "Regional indicator": d["Regional indicator"],
                 "Ladder score": +d["Ladder score"],
                 "Social support": +d["Social support"],
                 "Healthy life expectancy": +d["Healthy life expectancy"],
@@ -246,7 +305,8 @@
 
             // Update paragraph with R² values and conclusion
             d3.select("#data-context")
-                .html(`The World Happiness Report 2024, a landmark survey released at the United Nations, ranks 143 countries by their happiness levels, building on data from the Gallup World Poll (2013-2020) using the Cantril ladder, where respondents rate their lives from 0 (worst) to 10 (best). This report, recognized globally by governments and organizations, leverages expert analysis in economics, psychology, and public policy to assess national progress through well-being metrics. Our dataset, comprising 143 countries from 2024, includes the Ladder score and factors like Social support, Healthy life expectancy, and Freedom to make life choices, which estimate contributions to happiness beyond a hypothetical Dystopia (the world’s lowest averages for economic production, social support, life expectancy, freedom, absence of corruption, and generosity). We explore this data to understand how these factors shape happiness, motivated by the need to inform policy decisions and address global well-being disparities. Linear regression analysis reveals Social support (R² = 0.662), Healthy life expectancy (R² = 0.577), and Freedom to make life choices (R² = 0.415) correlate with Ladder score. Social support’s highest R² suggests the strongest linear relationship, aligning with its role in providing emotional and practical support, while the moderate R² values for life expectancy and freedom reflect their complex, multifaceted influence on happiness, encouraging deeper exploration through this visualization.`);
+                .html(`The World Happiness Report 2024, a landmark survey released at the United Nations, ranks 143 countries by their happiness levels, building on data from the Gallup World Poll (2013-2020) using the Cantril ladder, where respondents rate their lives from 0 (worst) to 10 (best). This report, recognized globally by governments and organizations, leverages expert analysis in economics, psychology, and public policy to assess national progress through well-being metrics. Our dataset, comprising 143 countries from 2024, includes the Ladder score and factors like Social support, Healthy life expectancy, and Freedom to make life choices, which estimate contributions to happiness beyond a hypothetical Dystopia (the world’s lowest averages for economic production, social support, life expectancy, freedom, absence of corruption, and generosity). We explore this data to understand how these factors shape happiness, motivated by the need to inform policy decisions and address global well-being disparities. Linear regression analysis reveals Social support (R² = ${r2Values.ss}), Healthy life expectancy (R² = ${r2Values.hle}), and Freedom to make life choices (R² = ${r2Values.fmc}) correlate with Ladder score. Social support’s highest R² suggests the strongest linear relationship, aligning with its role in providing emotional and practical support, while the moderate R² values for life expectancy and freedom reflect their complex, multifaceted influence on happiness, encouraging deeper exploration through this visualization.`);
+
             // Initial scene
             updateScene(1, data);
         });
