@@ -54,7 +54,7 @@
         .regression-line { stroke: red; stroke-width: 2; }
         .annotation-note-label { font-size: 12px; }
         .annotation-group { display: block !important; }
-        .legend { font-size: 10px; }
+        .legend { font-size: 8px; }
     </style>
 </head>
 <body>
@@ -135,13 +135,16 @@
                 .attr("x", width / 2)
                 .attr("y", 40)
                 .attr("fill", "black")
+                .style("text-anchor", "middle")
                 .text(scene.x);
             yAxis.selectAll("text").remove();
             yAxis.append("text")
+                .attr("transform", "rotate(-90)")
                 .attr("x", -height / 2)
                 .attr("y", -40)
-                .attr("transform", "rotate(-90)")
+                .attr("dy", "1em")
                 .attr("fill", "black")
+                .style("text-anchor", "middle")
                 .text(scene.y);
 
             // Title
@@ -212,7 +215,7 @@
                 .enter()
                 .append("g")
                 .attr("class", "legend")
-                .attr("transform", (d, i) => `translate(10, ${height - 20 - (regions.length * 15) + i * 15})`);
+                .attr("transform", (d, i) => `translate(${width - 150}, ${height + 10 + i * 12})`);
 
             legend.append("circle")
                 .attr("cx", 0)
