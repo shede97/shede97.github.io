@@ -127,17 +127,15 @@
             xScale.domain(d3.extent(data, d => d[scene.x]) || [0, 1]).nice();
             yScale.domain(d3.extent(data, d => d[scene.y]) || [0, 1]).nice();
 
-            // Update axes
+            // Update axes with numerical labels
             xAxis.transition().call(d3.axisBottom(xScale));
             yAxis.transition().call(d3.axisLeft(yScale));
-            xAxis.selectAll("text").remove();
             xAxis.append("text")
                 .attr("x", width / 2)
                 .attr("y", 40)
                 .attr("fill", "black")
                 .style("text-anchor", "middle")
                 .text(scene.x);
-            yAxis.selectAll("text").remove();
             yAxis.append("text")
                 .attr("transform", "rotate(-90)")
                 .attr("x", -height / 2)
@@ -215,7 +213,7 @@
                 .enter()
                 .append("g")
                 .attr("class", "legend")
-                .attr("transform", (d, i) => `translate(${width - 150}, ${height + 10 + i * 12})`);
+                .attr("transform", (d, i) => `translate(${width - 150}, ${height + i * 12})`);
 
             legend.append("circle")
                 .attr("cx", 0)
