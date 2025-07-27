@@ -64,7 +64,7 @@
             <button class="button" onclick="updateScene(2, data)">Scene 2: Life Expectancy</button>
             <button class="button" onclick="updateScene(3, data)">Scene 3: Freedom</button>
         </div>
-        <svg id="visualization" width="800" height="500"></svg>
+        <svg id="visualization" width="900" height="500"></svg>
     </div>
     <script>
         // Check if d3.annotation is available
@@ -79,8 +79,8 @@
                 y: "Ladder score",
                 title: "Happiness vs Social Support",
                 annotations: [
-                    { note: { title: "High Social Support", label: "Finland: Strong community ties boost happiness" }, dy: -20, dx: 20, country: "Finland" },
-                    { note: { title: "Low Social Support", label: "Afghanistan: Weak support lowers happiness" }, dy: 20, dx: -20, country: "Afghanistan" }
+                    { note: { title: "High Social Support", label: "Finland: Strong community ties boost happiness" }, x: 550, y: 50, dy: 20, dx: 20 },
+                    { note: { title: "Low Social Support", label: "Afghanistan: Weak support lowers happiness" }, x: 50, y: 350, dy: 20, dx: -20 }
                 ]
             },
             2: {
@@ -88,7 +88,7 @@
                 y: "Ladder score",
                 title: "Happiness vs Healthy Life Expectancy",
                 annotations: [
-                    { note: { title: "High Life Expectancy", label: "Hong Kong: Long, healthy lives correlate with happiness" }, dy: -20, dx: 20, country: "Hong Kong S.A.R. of China" }
+                    { note: { title: "High Life Expectancy", label: "Hong Kong: Long, healthy lives correlate with happiness" }, x: 400, y: 200, dy: 20, dx: 20 }
                 ]
             },
             3: {
@@ -178,40 +178,15 @@
 
             // Annotations
             if (typeof d3.annotation !== 'undefined') {
-                const annotations = scene.annotations
-                    .map(ann => {
-                        const countryData = data.find(d => d["Country name"] === ann.country);
-                        if (!countryData) {
-                            console.warn(`Annotation for ${ann.country} skipped: country not found or missing data`);
-                            return null;
-                        }
-                        const xPos = countryData[scene.x];
-                        const yPos = countryData[scene.y];
-                        console.log(`Annotation for ${ann.country}: raw x=${xPos}, raw y=${yPos}, scaled x=${xScale(xPos)}, scaled y=${yScale(yPos)}`);
-                        return {
-                            note: ann.note,
-                            dy: ann.dy,
-                            dx: ann.dx,
-                            x: xPos,
-                            y: yPos
-                        };
-                    })
-                    .filter(ann => ann !== null);
-
+                const annotations = scene.annotations;
                 if (annotations.length > 0) {
                     const makeAnnotations = d3.annotation()
                         .type(d3.annotationLabel)
-                        .accessors({
-                            x: d => xScale(d.x),
-                            y: d => yScale(d.y)
-                        })
                         .annotations(annotations);
-                    const annotationGroup = g.append("g")
+                    g.append("g")
                         .attr("class", "annotation-group")
                         .call(makeAnnotations);
-                    console.log("Annotation group created:", annotationGroup.nodes().length, "nodes");
-                } else {
-                    console.warn("No valid annotations to render");
+                    console.log("Annotation group created with", annotations.length, "annotations");
                 }
             } else {
                 console.warn("Annotations skipped: d3-annotation library not loaded");
