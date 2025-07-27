@@ -79,8 +79,8 @@
                 y: "Ladder score",
                 title: "Happiness vs Social Support",
                 annotations: [
-                    { note: { title: "High Social Support", label: "Finland: Strong community ties boost happiness" }, x: 1.572, y: 7.741, dy: -30, dx: 50, country: "Finland" },
-                    { note: { title: "Low Social Support", label: "Afghanistan: Weak support lowers happiness" }, x: 0.000, y: 1.721, dy: 30, dx: -50, country: "Afghanistan" }
+                    { note: { title: "High Social Support", label: "Finland: Strong community ties boost happiness" }, dy: -40, dx: 40, country: "Finland" },
+                    { note: { title: "Low Social Support", label: "Afghanistan: Weak support lowers happiness" }, dy: 40, dx: -40, country: "Afghanistan" }
                 ]
             },
             2: {
@@ -88,7 +88,7 @@
                 y: "Ladder score",
                 title: "Happiness vs Healthy Life Expectancy",
                 annotations: [
-                    { note: { title: "High Life Expectancy", label: "Hong Kong: Long, healthy lives correlate with happiness" }, x: 0.857, y: 5.316, dy: -30, dx: 50, country: "Hong Kong S.A.R. of China" }
+                    { note: { title: "High Life Expectancy", label: "Hong Kong: Long, healthy lives correlate with happiness" }, dy: -40, dx: 40, country: "Hong Kong S.A.R. of China" }
                 ]
             },
             3: {
@@ -224,17 +224,18 @@
                                 return null;
                             }
                             return {
-                                ...ann,
-                                x: countryData[scene.x],
-                                y: countryData[scene.y]
+                                note: ann.note,
+                                dy: ann.dy,
+                                dx: ann.dx,
+                                data: { x: countryData[scene.x], y: countryData[scene.y] }
                             };
                         })
                         .filter(ann => ann !== null);
                     const makeAnnotations = d3.annotation()
                         .type(d3.annotationLabel)
                         .accessors({
-                            x: d => xScale(d.x),
-                            y: d => yScale(d.y)
+                            x: d => xScale(d.data.x),
+                            y: d => yScale(d.data.y)
                         })
                         .annotations(annotations);
                     g.append("g")
