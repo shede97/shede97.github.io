@@ -130,7 +130,10 @@
             // Update axes with numerical labels
             xAxis.transition().call(d3.axisBottom(xScale));
             yAxis.transition().call(d3.axisLeft(yScale));
+            // Remove existing x-axis label before adding new one
+            xAxis.select(".axis-label").remove();
             xAxis.append("text")
+                .attr("class", "axis-label")
                 .attr("x", width / 2)
                 .attr("y", 40)
                 .attr("fill", "black")
@@ -213,7 +216,7 @@
                 .enter()
                 .append("g")
                 .attr("class", "legend")
-                .attr("transform", (d, i) => `translate(${width - 150}, ${height + i * 12})`);
+                .attr("transform", (d, i) => `translate(${width - 150}, ${height - 108 + i * 12})`);
 
             legend.append("circle")
                 .attr("cx", 0)
