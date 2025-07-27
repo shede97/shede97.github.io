@@ -59,9 +59,9 @@
     <div class="container">
         <h1>Exploring 2024 World Happiness Factors</h1>
         <div class="controls">
-            <button class="button" onclick="updateScene(1)">Scene 1: Social Support</button>
-            <button class="button" onclick="updateScene(2)">Scene 2: Life Expectancy</button>
-            <button class="button" onclick="updateScene(3)">Scene 3: Freedom</button>
+            <button class="button" onclick="updateScene(1, data)">Scene 1: Social Support</button>
+            <button class="button" onclick="updateScene(2, data)">Scene 2: Life Expectancy</button>
+            <button class="button" onclick="updateScene(3, data)">Scene 3: Freedom</button>
         </div>
         <svg id="visualization" width="800" height="500"></svg>
     </div>
@@ -72,7 +72,6 @@
         }
 
         // Parameters
-        let currentScene = 1;
         const scenes = {
             1: {
                 x: "Social support",
@@ -119,15 +118,111 @@
         // Tooltip
         const tooltip = d3.select("body").append("div").attr("class", "tooltip").style("opacity", 0);
 
+        // Update scene function (global scope)
+        function updateScene(sceneNumber, data) {
+            const scene = scenes[sceneNumber];
+
+            // Clear previous content
+            g.selectAll(".dot, .annotation").remove();
+
+            // Update scales
+            xScale.domain(d3.extent(data, d => d[scene.x])).nice();
+            yScale.domain(d3.extent(data, d => d[scene.y])).nice();
+
+            // Update axes
+            xAxis.transition().call(d3.axisBottom(xScale));
+            yAxis.transition().call(d3.axisLeft(yScale));
+            xAxis.selectAll("text").remove(); // Clear previous axis labels
+            xAxis.append("text")
+                .attr("x", width / 2)
+                .attr("y", 40)
+                .attr("fill", "black")
+                .text(scene.x);
+            yAxis.selectAll("text").remove(); // Clear previous axis labels
+            yAxis.append("text")
+                .attr("x", -height / 2)
+                .attr("y", -40)
+                .attr("transform", "rotate(-90)")
+                .attr("fill", "black")
+                .text(scene.y);
+
+            // Title
+            svg.selectAll(".title").remove();
+            svg.append("text")
+                .attr("class", "title")
+                .attr("x", width / 2 + margin.left)
+                .attr("y", margin.top / 2)
+                .attr("text-anchor", "middle")
+                .text(scene.title);
+
+            // Draw dots
+            g.selectAll(".dot")
+                .data(data)
+                .enter()
+                .append("circle")
+                .attr("class", "dot")
+                .attr("cx", d => xScale(d[scene.x]))
+                .attr("cy", d => yScale(d[scene.y]))
+                .attr("r", 5)
+                .attr("fill", (d, i) => colorScale(i % 10))
+                .on("mouseover", function(d) {
+                    if (scene.interactive) {
+                        tooltip.transition().style("opacity", 0.9);
+                        tooltip.html(`Country: ${d["Country name"]}<br>Ladder score: ${d["Ladder score"]}<br>${scene.x}: ${d[scene.x]}`)
+                            .style("left", (d3.event.pageX + 5) + "px")
+                            .style("top", (d3.event.pageY - 28) + "px");
+                    }
+                })
+                .on("mouseout", function() {
+                    if (scene.interactive) {
+                        tooltip.transition().style("opacity", 0);
+                    }
+                });
+
+            // Annotations
+            if (typeof d3.annotation !== 'undefined') {
+                const annotations = scene.annotations
+                    .map(ann => {
+                        const countryData = data.find(d => d["Country name"] === ann.country);
+                        if (!countryData) {
+                            console.warn(`Annotation for ${ann.country} skipped: country not found or missing data`);
+                            return null;
+                        }
+                        console.log(`Annotation for ${ann.country}: x=${countryData[scene.x]}, y=${countryData[scene.y]}`); // Debug log
+                        return {
+                            note: ann.note,
+                            dy: ann.dy,
+                            dx: ann.dx,
+                            x: countryData[scene.x],
+                            y: countryData[scene.y]
+                        };
+                    })
+                    .filter(ann => ann !== null);
+                const makeAnnotations = d3.annotation()
+                    .type(d3.annotationLabel)
+                    .accessors({
+                        x: d => xScale(d.x),
+                        y: d => yScale(d.y)
+                    })
+                    .annotations(annotations);
+                g.append("g")
+                    .attr("class", "annotation")
+                    .call(makeAnnotations);
+            } else {
+                console.warn("Annotations skipped: d3-annotation library not loaded");
+            }
+        }
+
         // Load data and initialize
-        d3.csv("world-happiness-report-2024.csv", function(error, data) {
+        let data = [];
+        d3.csv("world-happiness-report-2024.csv", function(error, csvData) {
             if (error) {
                 console.error("Error loading CSV:", error);
                 return;
             }
 
             // Convert strings to numbers and filter out invalid rows
-            data = data.filter(d => 
+            data = csvData.filter(d => 
                 d["Ladder score"] && 
                 d["Social support"] && 
                 d["Healthy life expectancy"] && 
@@ -154,100 +249,8 @@
                 }
             });
 
-            // Update scene function
-            function updateScene(sceneNumber) {
-                currentScene = sceneNumber;
-                const scene = scenes[sceneNumber];
-
-                // Clear previous content
-                g.selectAll(".dot, .annotation").remove();
-
-                // Update scales
-                xScale.domain(d3.extent(data, d => d[scene.x])).nice();
-                yScale.domain(d3.extent(data, d => d[scene.y])).nice();
-
-                // Update axes
-                xAxis.transition().call(d3.axisBottom(xScale));
-                yAxis.transition().call(d3.axisLeft(yScale));
-                xAxis.append("text")
-                    .attr("x", width / 2)
-                    .attr("y", 40)
-                    .attr("fill", "black")
-                    .text(scene.x);
-                yAxis.append("text")
-                    .attr("x", -height / 2)
-                    .attr("y", -40)
-                    .attr("transform", "rotate(-90)")
-                    .attr("fill", "black")
-                    .text(scene.y);
-
-                // Title
-                svg.selectAll(".title").remove();
-                svg.append("text")
-                    .attr("class", "title")
-                    .attr("x", width / 2 + margin.left)
-                    .attr("y", margin.top / 2)
-                    .attr("text-anchor", "middle")
-                    .text(scene.title);
-
-                // Draw dots
-                g.selectAll(".dot")
-                    .data(data)
-                    .enter()
-                    .append("circle")
-                    .attr("class", "dot")
-                    .attr("cx", d => xScale(d[scene.x]))
-                    .attr("cy", d => yScale(d[scene.y]))
-                    .attr("r", 5)
-                    .attr("fill", (d, i) => colorScale(i % 10))
-                    .on("mouseover", function(d) {
-                        if (scene.interactive) {
-                            tooltip.transition().style("opacity", 0.9);
-                            tooltip.html(`Country: ${d["Country name"]}<br>Ladder score: ${d["Ladder score"]}<br>${scene.x}: ${d[scene.x]}`)
-                                .style("left", (d3.event.pageX + 5) + "px")
-                                .style("top", (d3.event.pageY - 28) + "px");
-                        }
-                    })
-                    .on("mouseout", function() {
-                        if (scene.interactive) {
-                            tooltip.transition().style("opacity", 0);
-                        }
-                    });
-
-                // Annotations
-                if (typeof d3.annotation !== 'undefined') {
-                    const annotations = scene.annotations
-                        .map(ann => {
-                            const countryData = data.find(d => d["Country name"] === ann.country);
-                            if (!countryData) {
-                                console.warn(`Annotation for ${ann.country} skipped: country not found or missing data`);
-                                return null;
-                            }
-                            return {
-                                note: ann.note,
-                                dy: ann.dy,
-                                dx: ann.dx,
-                                data: { x: countryData[scene.x], y: countryData[scene.y] }
-                            };
-                        })
-                        .filter(ann => ann !== null);
-                    const makeAnnotations = d3.annotation()
-                        .type(d3.annotationLabel)
-                        .accessors({
-                            x: d => xScale(d.data.x),
-                            y: d => yScale(d.data.y)
-                        })
-                        .annotations(annotations);
-                    g.append("g")
-                        .attr("class", "annotation")
-                        .call(makeAnnotations);
-                } else {
-                    console.warn("Annotations skipped: d3-annotation library not loaded");
-                }
-            }
-
             // Initial scene
-            updateScene(1);
+            updateScene(1, data);
         });
     </script>
 </body>
